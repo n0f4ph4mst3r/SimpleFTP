@@ -84,7 +84,7 @@ ClientApp::ClientApp(const wxString& title)
     *
     *
     *
-    * ----------------------------center-------------------------------------
+    * ----------------------------center----------------------------------
     *
     *
     *
@@ -93,8 +93,9 @@ ClientApp::ClientApp(const wxString& title)
     centerPanel->SetBackgroundColour(wxColor(100, 100, 200)); //need delete
 
     wxFlexGridSizer* centerSizer = new wxFlexGridSizer (1, 3, 0, 0);
-    wxListBox* userDirs = new wxListBox(centerPanel, -1, wxDefaultPosition, wxSize(300, -1));
-    wxListBox* serverDirs = new wxListBox(centerPanel, -1, wxDefaultPosition, wxSize(300, -1));
+
+    wxGenericDirCtrl* clientDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
+    wxGenericDirCtrl* serverDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
 
     //Switch
     wxPanel* switchPanel = new wxPanel(centerPanel, -1, wxDefaultPosition, wxSize(95, -1));
@@ -107,7 +108,7 @@ ClientApp::ClientApp(const wxString& title)
     switchPanel->SetSizer(switchSizer);
 
     //Set sizer
-    centerSizer->Add(userDirs, 1, wxEXPAND | wxALL, 5);
+    centerSizer->Add(clientDirs, 1, wxEXPAND | wxALL, 5);
     centerSizer->Add(switchPanel, 1, wxEXPAND);
     centerSizer->Add(serverDirs, 1, wxEXPAND | wxALL, 5);
     centerSizer->AddGrowableCol(0, 1);
