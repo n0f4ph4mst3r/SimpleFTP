@@ -30,51 +30,23 @@ ClientApp::ClientApp(const wxString& title)
 
     controlPanel->SetSizer(controlPanelSizer);
 
+    //Login panel
     wxPanel* accessPanelMain = new wxPanel(headerPanel, -1, wxDefaultPosition, wxSize(600, 100));
     accessPanelMain->SetBackgroundColour(wxColor(255, 203, 219)); //need delete
 
-    //Login panel
-    wxPanel* accessPanelTop = new wxPanel(accessPanelMain, -1, wxDefaultPosition, wxSize(600, 50));
-    accessPanelTop->SetBackgroundColour(wxColor(0, 255, 0)); //need delete
-
-    wxFlexGridSizer* accessPanelTopSizer = new wxFlexGridSizer(2, 4, 1, 1);
-    accessPanelTopSizer->Add(new wxStaticText(accessPanelTop, -1, wxT("Host")), 0,  wxALIGN_BOTTOM | wxTOP | wxLEFT, 5);
-    accessPanelTopSizer->Add(new wxStaticText(accessPanelTop, -1, wxT("Login")), 0, wxALIGN_BOTTOM | wxTOP | wxLEFT, 5);
-    accessPanelTopSizer->Add(new wxStaticText(accessPanelTop, -1, wxT("Port")), 0, wxALIGN_BOTTOM | wxTOP | wxLEFT, 5);
-    accessPanelTopSizer->Add(new wxStaticText(accessPanelTop, -1, wxT("Password")), 0, wxALIGN_BOTTOM | wxTOP | wxLEFT, 5);
-    accessPanelTopSizer->Add(new wxTextCtrl(accessPanelTop, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxTOP | wxLEFT, 5);
-    accessPanelTopSizer->Add(new wxTextCtrl(accessPanelTop, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxTOP | wxLEFT, 5);
-    accessPanelTopSizer->Add(new wxTextCtrl(accessPanelTop, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxTOP | wxLEFT, 5);
-    accessPanelTopSizer->Add(new wxTextCtrl(accessPanelTop, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD), 0, wxTOP | wxLEFT, 5);
-    accessPanelTopSizer->AddGrowableCol(3, 1);
-
-    //Directory selector
-    wxPanel* accessPanelBottom = new wxPanel(accessPanelMain, -1, wxDefaultPosition, wxSize(600, 50));
-    accessPanelBottom->SetBackgroundColour(wxColor(255, 255, 0)); //need delete
-
-    wxFlexGridSizer* accessPanelBottomSizer = new wxFlexGridSizer(2, 3, 0, 0);
-    
-    wxComboBox* dirComboBox = new wxComboBox(accessPanelBottom, -1, wxEmptyString, wxDefaultPosition, wxSize(300, 20));
-    wxStaticText* currentPath = new wxStaticText(accessPanelBottom, -1, wxT("path/to/file"));
-    wxButton* createDirButton = new wxButton(accessPanelBottom, -1, wxT("Create directory"), wxDefaultPosition, wxSize(125, 22));
-
-    accessPanelBottomSizer->Add(dirComboBox, 0, wxLEFT | wxTOP, 5);
-    accessPanelBottomSizer->Add(new wxPanel(accessPanelBottom, -1, wxDefaultPosition, wxSize(100, 25)), 0);
-    accessPanelBottomSizer->Add(new wxPanel(accessPanelBottom, -1, wxDefaultPosition, wxSize(100, 25)), 1, wxEXPAND);
-    accessPanelBottomSizer->Add(currentPath, 1, wxLEFT | wxBOTTOM, 5);
-    accessPanelBottomSizer->Add(new wxPanel(accessPanelBottom, -1, wxDefaultPosition, wxSize(100, 25)), 0);
-    accessPanelBottomSizer->Add(createDirButton, 0, wxLEFT | wxBOTTOM, 5);
-    accessPanelBottomSizer->AddGrowableCol(0, 1);
-    accessPanelBottomSizer->AddGrowableCol(2, 1);
-
+    wxFlexGridSizer* accessPanelMainSizer = new wxFlexGridSizer(2, 4, 0, 0);
+    accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Host")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Login")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Port")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Password")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->AddGrowableRow(0, 1);
+    accessPanelMainSizer->AddGrowableRow(1, 1);
     //Set sizers
-    wxBoxSizer* accessPanelMainSizer = new wxBoxSizer(wxVERTICAL);
-    accessPanelMainSizer->Add(accessPanelTop, 1, wxEXPAND | wxLEFT | wxRIGHT);
-    accessPanelMainSizer->Add(accessPanelBottom, 1, wxEXPAND | wxLEFT | wxRIGHT);
-    
     accessPanelMain->SetSizer(accessPanelMainSizer);
-    accessPanelTop->SetSizer(accessPanelTopSizer);
-    accessPanelBottom->SetSizer(accessPanelBottomSizer);
 
     wxBoxSizer* headerPanelSizer = new wxBoxSizer(wxHORIZONTAL);
     headerPanelSizer->Add(accessPanelMain, 1, wxEXPAND | wxLEFT | wxRIGHT);
