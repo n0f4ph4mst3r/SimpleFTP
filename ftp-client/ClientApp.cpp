@@ -39,10 +39,10 @@ ClientApp::ClientApp(const wxString& title)
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Login")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Port")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Password")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxEmptyString, wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxT("localhost"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxT("admin"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxT("21"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxT("test"), wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
     accessPanelMainSizer->AddGrowableRow(0, 1);
     accessPanelMainSizer->AddGrowableRow(1, 1);
     //Set sizers
