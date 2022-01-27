@@ -1,7 +1,6 @@
 #include "ClientApp.h"
 
 wxBEGIN_EVENT_TABLE(ClientApp, wxFrame)
-   EVT_COMBOBOX(-1, dirComboBoxOnCreate)
 wxEND_EVENT_TABLE()
 
 ClientApp::ClientApp(const wxString& title)
@@ -115,8 +114,4 @@ ClientApp::ClientApp(const wxString& title)
     this->SetSizerAndFit(frameSizer);
 
     Centre();
-}
-
-void ClientApp::dirComboBoxOnCreate(wxCommandEvent& event) {
-
 }
