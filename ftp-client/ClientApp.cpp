@@ -22,8 +22,13 @@ ClientApp::ClientApp(const wxString& title)
     controlPanel->SetBackgroundColour(wxColor(255, 165, 0)); //need delete
 
     wxGridSizer* controlPanelSizer = new wxGridSizer(2, 1, 0, 0);
-    wxButton* conButton = new wxButton(controlPanel, -1, wxT("Connect"));
-    wxButton* discButton = new wxButton(controlPanel, -1, wxT("Disconnect"));
+
+    wxButton* conButton = new wxButton(controlPanel, ID_CONNECT_SERV, wxT("Connect"));
+    wxButton* discButton = new wxButton(controlPanel, ID_DISCONNECT_SERV, wxT("Disconnect"));
+
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ClientApp::conButtonClicked, this, ID_CONNECT_SERV);
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ClientApp::dicsButtonClicked, this, ID_DISCONNECT_SERV);
+
     controlPanelSizer->Add(conButton, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM | wxBOTTOM, 5);
     controlPanelSizer->Add(discButton, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP | wxTOP, 5);
 
@@ -38,12 +43,13 @@ ClientApp::ClientApp(const wxString& title)
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Login")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Port")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Password")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxT("localhost"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxT("admin"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxT("21"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, -1, wxT("test"), wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, ID_HOST_DATA, wxT("localhost"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, ID_LOGIN_DATA, wxT("admin"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, ID_PASSWORD_DATA, wxT("21"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, ID_PORT_DATA, wxT("test"), wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
     accessPanelMainSizer->AddGrowableRow(0, 1);
     accessPanelMainSizer->AddGrowableRow(1, 1);
+
     //Set sizers
     accessPanelMain->SetSizer(accessPanelMainSizer);
 
@@ -114,4 +120,22 @@ ClientApp::ClientApp(const wxString& title)
     this->SetSizerAndFit(frameSizer);
 
     Centre();
+}
+
+void ClientApp::conButtonClicked(wxCommandEvent&) {
+    ftpClient->SetUser(accessData["login"]);
+    ftpClient->SetPassword(accessData["password"]);
+    if (!ftpClient->Connect(accessData["host"], wxAtoi(accessData["port"])))
+    {
+        wxLogError("Couldn't connect");
+        return;
+    }
+    else {
+        wxMessageBox(wxT("Connected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
+    }
+}
+
+void ClientApp::dicsButtonClicked(wxCommandEvent&) {
+    ftpClient->Close();
+    wxMessageBox(wxT("Disconnected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
 }
