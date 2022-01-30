@@ -5,6 +5,14 @@ wxEND_EVENT_TABLE()
 
 ClientApp::ClientApp(const wxString& title)
     : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize) {
+
+    ftpClient = new wxFTP();
+
+    accessData = { {"host", "localhost"},
+                   {"login", "admin"},
+                   {"password", "test"},
+                   {"port", "21"} };
+
     /*
     * 
     * 
@@ -14,17 +22,17 @@ ClientApp::ClientApp(const wxString& title)
     * 
     * 
     */
-    wxPanel* headerPanel = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 100));
+    headerPanel = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 100));
     headerPanel->SetBackgroundColour(wxColor(200, 100, 100));
 
     //Connect/Disconnect buttons
-    wxPanel* controlPanel = new wxPanel(headerPanel, -1, wxDefaultPosition, wxSize(100, 100));
+    controlPanel = new wxPanel(headerPanel, -1, wxDefaultPosition, wxSize(100, 100));
     controlPanel->SetBackgroundColour(wxColor(255, 165, 0)); //need delete
 
-    wxGridSizer* controlPanelSizer = new wxGridSizer(2, 1, 0, 0);
+    controlPanelSizer = new wxGridSizer(2, 1, 0, 0);
 
-    wxButton* conButton = new wxButton(controlPanel, ID_CONNECT_SERV, wxT("Connect"));
-    wxButton* discButton = new wxButton(controlPanel, ID_DISCONNECT_SERV, wxT("Disconnect"));
+    conButton = new wxButton(controlPanel, ID_CONNECT_SERV, wxT("Connect"));
+    discButton = new wxButton(controlPanel, ID_DISCONNECT_SERV, wxT("Disconnect"));
 
     Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ClientApp::conButtonClicked, this, ID_CONNECT_SERV);
     Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ClientApp::dicsButtonClicked, this, ID_DISCONNECT_SERV);
@@ -35,25 +43,32 @@ ClientApp::ClientApp(const wxString& title)
     controlPanel->SetSizer(controlPanelSizer);
 
     //Login panel
-    wxPanel* accessPanelMain = new wxPanel(headerPanel, -1, wxDefaultPosition, wxSize(600, 100));
+    accessPanelMain = new wxPanel(headerPanel, -1, wxDefaultPosition, wxSize(600, 100));
     accessPanelMain->SetBackgroundColour(wxColor(255, 203, 219)); //need delete
 
-    wxFlexGridSizer* accessPanelMainSizer = new wxFlexGridSizer(2, 4, 0, 0);
+    accessPanelMainSizer = new wxFlexGridSizer(2, 4, 0, 0);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Host")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Login")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Port")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Password")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, ID_HOST_DATA, wxT("localhost"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, ID_LOGIN_DATA, wxT("admin"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, ID_PASSWORD_DATA, wxT("21"), wxDefaultPosition, wxSize(125, 20)), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
-    accessPanelMainSizer->Add(new wxTextCtrl(accessPanelMain, ID_PORT_DATA, wxT("test"), wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD), 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+
+    hostCtrl = new wxTextCtrl(accessPanelMain, ID_HOST_DATA, wxT("localhost"), wxDefaultPosition, wxSize(125, 20));
+    userCtrl = new wxTextCtrl(accessPanelMain, ID_LOGIN_DATA, wxT("admin"), wxDefaultPosition, wxSize(125, 20));
+    passwordCtrl = new wxTextCtrl(accessPanelMain, ID_PASSWORD_DATA, wxT("21"), wxDefaultPosition, wxSize(125, 20));
+    portCtrl = new wxTextCtrl(accessPanelMain, ID_PORT_DATA, wxT("test"), wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD);
+
+    accessPanelMainSizer->Add(hostCtrl, 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(userCtrl, 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(passwordCtrl, 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+    accessPanelMainSizer->Add(portCtrl, 0, wxALIGN_TOP | wxTOP | wxLEFT, 5);
+
     accessPanelMainSizer->AddGrowableRow(0, 1);
     accessPanelMainSizer->AddGrowableRow(1, 1);
 
     //Set sizers
     accessPanelMain->SetSizer(accessPanelMainSizer);
 
-    wxBoxSizer* headerPanelSizer = new wxBoxSizer(wxHORIZONTAL);
+    headerPanelSizer = new wxBoxSizer(wxHORIZONTAL);
     headerPanelSizer->Add(accessPanelMain, 1, wxEXPAND | wxLEFT | wxRIGHT);
     headerPanelSizer->Add(controlPanel, 0, wxEXPAND);
     headerPanel->SetSizer(headerPanelSizer);
@@ -66,19 +81,19 @@ ClientApp::ClientApp(const wxString& title)
     *
     *
     */
-    wxPanel* centerPanel = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 275));
+    centerPanel = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 275));
     centerPanel->SetBackgroundColour(wxColor(100, 100, 200)); //need delete
 
-    wxFlexGridSizer* centerSizer = new wxFlexGridSizer (1, 3, 0, 0);
+    centerSizer = new wxFlexGridSizer (1, 3, 0, 0);
 
-    wxGenericDirCtrl* clientDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
-    wxGenericDirCtrl* serverDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
+    clientDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
+    serverDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
 
     //Switch
-    wxPanel* switchPanel = new wxPanel(centerPanel, -1, wxDefaultPosition, wxSize(95, -1));
-    wxButton* rightshift = new wxButton(switchPanel, -1, wxT(">>>"));
-    wxButton* leftshift = new wxButton(switchPanel, -1, wxT("<<<"));
-    wxGridSizer* switchSizer = new wxGridSizer(2, 1, 0, 0);
+    switchPanel = new wxPanel(centerPanel, -1, wxDefaultPosition, wxSize(95, -1));
+    rightshift = new wxButton(switchPanel, -1, wxT(">>>"));
+    leftshift = new wxButton(switchPanel, -1, wxT("<<<"));
+    switchSizer = new wxGridSizer(2, 1, 0, 0);
     switchSizer->Add(rightshift, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM | wxBOTTOM, 15);
     switchSizer->Add(leftshift, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP | wxTOP, 15);
 
@@ -102,12 +117,12 @@ ClientApp::ClientApp(const wxString& title)
     *
     *
     */
-    wxPanel* footer = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 150));
+    footer = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 150));
     footer->SetBackgroundColour(wxColor(128, 0, 128)); //need delete
 
-    wxListBox* footerListBox = new wxListBox(footer, -1);
+    footerListBox = new wxListBox(footer, -1);
 
-    wxBoxSizer* footerSizer = new wxBoxSizer(wxVERTICAL);
+    footerSizer = new wxBoxSizer(wxVERTICAL);
     footerSizer->Add(footerListBox, 1, wxEXPAND | wxALL, 5);
     footer->SetSizer(footerSizer);
 
