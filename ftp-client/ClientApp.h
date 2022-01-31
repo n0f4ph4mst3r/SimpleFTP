@@ -3,6 +3,7 @@
 #include <wx/dirctrl.h>
 #include <wx/protocol/ftp.h>
 #include <wx/event.h>
+#include <wx/textctrl.h>
 #include <map>
 
 class ClientApp : public wxFrame
@@ -14,7 +15,7 @@ private:
     wxFTP* ftpClient;
 
     //login, port and etc.
-    std::map <wxString, wxString> accessData;
+    std::map <int, wxString> accessData;
 
 
     /*
@@ -37,8 +38,8 @@ private:
     wxBoxSizer* headerPanelSizer;
 
     //buttons
-    wxButton* conButton;
-    wxButton* discButton;
+    wxButton* connectionButton;
+    wxButton* disconectionButton;
 
     //TextCtrl
     wxTextCtrl* hostCtrl;
@@ -96,11 +97,12 @@ private:
            ID_DISCONNECT_SERV,
            ID_HOST_DATA,
            ID_LOGIN_DATA,
-           ID_PASSWORD_DATA,
-           ID_PORT_DATA
+           ID_PORT_DATA,
+           ID_PASSWORD_DATA
          };
 
     //events
-    void conButtonClicked(wxCommandEvent& event);
-    void dicsButtonClicked(wxCommandEvent& event);
+    void connectionClicked(wxCommandEvent& event);
+    void disconnectionClicked(wxCommandEvent& event);
+    void accessDataChanged(wxCommandEvent& event);
  };
