@@ -1,5 +1,15 @@
 #include "ClientApp.h"
 
+//eventID
+enum {
+    ID_CONNECT_SERV = wxID_HIGHEST + 1,
+    ID_DISCONNECT_SERV,
+    ID_HOST_DATA,
+    ID_LOGIN_DATA,
+    ID_PORT_DATA,
+    ID_PASSWORD_DATA
+};
+
 wxBEGIN_EVENT_TABLE(ClientApp, wxFrame)
 wxEND_EVENT_TABLE()
 

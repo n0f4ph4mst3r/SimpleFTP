@@ -88,19 +88,6 @@ private:
     //sizers
     wxBoxSizer* footerSizer;
 
-
-
-
-    //events ID
-    enum { 
-           ID_CONNECT_SERV = wxID_HIGHEST + 1,
-           ID_DISCONNECT_SERV,
-           ID_HOST_DATA,
-           ID_LOGIN_DATA,
-           ID_PORT_DATA,
-           ID_PASSWORD_DATA
-         };
-
     //events
     void connectionClicked(wxCommandEvent& event);
     void disconnectionClicked(wxCommandEvent& event);
