@@ -12,8 +12,6 @@ public:
     ClientApp(const wxString& title);
     wxDECLARE_EVENT_TABLE();
 private:
-    wxFTP* ftpClient;
-
     //login, port and etc.
     std::map <int, wxString> accessData;
 

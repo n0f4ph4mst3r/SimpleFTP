@@ -1,4 +1,9 @@
+#include <boost/array.hpp>
+#include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
 #include "ClientApp.h"
+
+using boost::asio::ip::tcp;
 
 //eventID
 enum {
@@ -15,8 +20,6 @@ wxEND_EVENT_TABLE()
 
 ClientApp::ClientApp(const wxString& title)
     : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize) {
-
-    ftpClient = new wxFTP();
 
     accessData = { {ID_HOST_DATA, "localhost"},
                    {ID_LOGIN_DATA, wxEmptyString},
@@ -152,20 +155,47 @@ ClientApp::ClientApp(const wxString& title)
 }
 
 void ClientApp::connectionClicked(wxCommandEvent&) {
-    ftpClient->SetUser(accessData[ID_LOGIN_DATA]);
-    ftpClient->SetPassword(accessData[ID_PASSWORD_DATA]);
-    if (!ftpClient->Connect(accessData[ID_HOST_DATA], wxAtoi(accessData[ID_PORT_DATA])))
+    try
     {
-        wxLogError("Couldn't connect");
-        return;
+        boost::asio::io_context io_context;
+
+        tcp::resolver resolver(io_context);
+        tcp::resolver::results_type endpoints = resolver.resolve(accessData[ID_HOST_DATA].ToStdString(), "ftp");
+
+        tcp::socket socket(io_context);
+        boost::asio::connect(socket, endpoints);
+
+        boost::asio::streambuf result;
+        std::istream result_stream(&result);
+        std::string resultstr;
+        boost::asio::streambuf request;
+        std::ostream request_stream(&request);
+
+        if (socket.is_open()) {
+
+            //send request
+            request_stream << "USER " << accessData[ID_LOGIN_DATA] << "\r\n";
+            request_stream << "PASS " << accessData[ID_PASSWORD_DATA] << "\r\n";
+            request_stream << "PASV" << "\r\n";
+            boost::asio::write(socket, request);
+
+            //wait one second
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+
+            //get result 
+            boost::asio::read_until(socket, result, "\r\n");
+            
+            wxMessageBox(wxT("Socket connected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
+        }
+        else wxLogError(wxT("Connection to command socket is fail"));
     }
-    else {
-        wxMessageBox(wxT("Connected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
+    catch (std::exception& e)
+    {
+        wxLogError(e.what());
     }
 }
 
 void ClientApp::disconnectionClicked(wxCommandEvent& event) {
-    ftpClient->Close();
     wxMessageBox(wxT("Disconnected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
 }
 
