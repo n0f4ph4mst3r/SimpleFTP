@@ -12,7 +12,8 @@ enum {
     ID_HOST_DATA,
     ID_LOGIN_DATA,
     ID_PORT_DATA,
-    ID_PASSWORD_DATA
+    ID_PASSWORD_DATA,
+    ID_LOGGER
 };
 
 wxBEGIN_EVENT_TABLE(ClientApp, wxFrame)
@@ -137,10 +138,14 @@ ClientApp::ClientApp(const wxString& title)
     footer = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 150));
     footer->SetBackgroundColour(wxColor(128, 0, 128)); //need delete
 
-    footerListBox = new wxListBox(footer, -1);
+    wxTextCtrl* footerTextCtrl = new wxTextCtrl(footer, ID_LOGGER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH);
+
+    footerTextCtrl->Bind(wxEVT_SET_FOCUS, [footerTextCtrl](wxFocusEvent&) {
+        HideCaret(footerTextCtrl->GetHWND());
+        });
 
     footerSizer = new wxBoxSizer(wxVERTICAL);
-    footerSizer->Add(footerListBox, 1, wxEXPAND | wxALL, 5);
+    footerSizer->Add(footerTextCtrl, 1, wxEXPAND | wxALL, 5);
     footer->SetSizer(footerSizer);
 
     //Set sizers for main frame
@@ -203,3 +208,4 @@ void ClientApp::accessDataChanged(wxCommandEvent& event) {
     wxTextCtrl* textCtrl = dynamic_cast<wxTextCtrl*>(event.GetEventObject());
     accessData[event.GetId()] = textCtrl->GetValue();
 }
+

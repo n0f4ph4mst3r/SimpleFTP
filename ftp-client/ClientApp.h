@@ -80,9 +80,6 @@ private:
     //panels
     wxPanel* footer;
 
-    //ListBoxs
-    wxListBox* footerListBox;
-
     //sizers
     wxBoxSizer* footerSizer;
 
