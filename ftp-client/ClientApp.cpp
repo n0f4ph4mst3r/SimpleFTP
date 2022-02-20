@@ -1,12 +1,26 @@
+#include <boost/array.hpp>
+#include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
 #include "ClientApp.h"
+
+using boost::asio::ip::tcp;
+
+//eventID
+enum {
+    ID_CONNECT_SERV = wxID_HIGHEST + 1,
+    ID_DISCONNECT_SERV,
+    ID_HOST_DATA,
+    ID_LOGIN_DATA,
+    ID_PORT_DATA,
+    ID_PASSWORD_DATA,
+    ID_LOGGER
+};
 
 wxBEGIN_EVENT_TABLE(ClientApp, wxFrame)
 wxEND_EVENT_TABLE()
 
 ClientApp::ClientApp(const wxString& title)
     : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize) {
-
-    ftpClient = new wxFTP();
 
     accessData = { {ID_HOST_DATA, "localhost"},
                    {ID_LOGIN_DATA, wxEmptyString},
@@ -124,10 +138,14 @@ ClientApp::ClientApp(const wxString& title)
     footer = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 150));
     footer->SetBackgroundColour(wxColor(128, 0, 128)); //need delete
 
-    footerListBox = new wxListBox(footer, -1);
+    wxTextCtrl* footerTextCtrl = new wxTextCtrl(footer, ID_LOGGER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH);
+
+    footerTextCtrl->Bind(wxEVT_SET_FOCUS, [footerTextCtrl](wxFocusEvent&) {
+        HideCaret(footerTextCtrl->GetHWND());
+        });
 
     footerSizer = new wxBoxSizer(wxVERTICAL);
-    footerSizer->Add(footerListBox, 1, wxEXPAND | wxALL, 5);
+    footerSizer->Add(footerTextCtrl, 1, wxEXPAND | wxALL, 5);
     footer->SetSizer(footerSizer);
 
     //Set sizers for main frame
@@ -142,24 +160,69 @@ ClientApp::ClientApp(const wxString& title)
 }
 
 void ClientApp::connectionClicked(wxCommandEvent&) {
-    ftpClient->SetUser(accessData[ID_LOGIN_DATA]);
-    ftpClient->SetPassword(accessData[ID_PASSWORD_DATA]);
-    if (!ftpClient->Connect(accessData[ID_HOST_DATA], wxAtoi(accessData[ID_PORT_DATA])))
+    wxTextCtrl* footerTextCtrl = dynamic_cast<wxTextCtrl*>(FindWindowById(ID_LOGGER));
+    try
     {
-        wxLogError("Couldn't connect");
-        return;
+        boost::asio::io_context io_context;
+
+        tcp::resolver resolver(io_context);
+        tcp::resolver::results_type endpoints = resolver.resolve(accessData[ID_HOST_DATA].ToStdString(), "ftp");
+
+        tcp::socket socket(io_context);
+        boost::asio::connect(socket, endpoints);
+
+        boost::asio::streambuf result;
+        std::istream result_stream(&result);
+        std::string resultstr;
+        boost::asio::streambuf request;
+        std::ostream request_stream(&request);
+
+        if (socket.is_open()) {
+
+            //send request
+            request_stream << "USER " << accessData[ID_LOGIN_DATA] << "\r\n";
+            request_stream << "PASS " << accessData[ID_PASSWORD_DATA] << "\r\n";
+            boost::asio::write(socket, request);
+
+            //wait one second
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+
+            //get result 
+            boost::asio::read_until(socket, result, "\r\n");
+
+            while (std::getline(result_stream, resultstr)) {
+                footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK));
+                footerTextCtrl->AppendText(resultstr);
+            }
+
+            footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLUE));
+
+            footerTextCtrl->AppendText("Socket connected\r\n");
+        }
+        else {
+            footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
+            footerTextCtrl->AppendText("ERROR: Connection to command socket is fail\r\n");
+        }
     }
-    else {
-        wxMessageBox(wxT("Connected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
+    catch (std::exception& e)
+    {
+        footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
+        std::ostream streamCtrl(footerTextCtrl);
+        streamCtrl << e.what() << "\r\n";
+        streamCtrl.flush();
     }
 }
 
 void ClientApp::disconnectionClicked(wxCommandEvent& event) {
-    ftpClient->Close();
-    wxMessageBox(wxT("Disconnected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
+    wxTextCtrl* footerTextCtrl = dynamic_cast<wxTextCtrl*>(FindWindowById(ID_LOGGER));
+
+    const wxFont* font = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, true);
+    footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, *wxBLUE, *font));
+    footerTextCtrl->AppendText("Disconneted!\r\n");
 }
 
 void ClientApp::accessDataChanged(wxCommandEvent& event) {
     wxTextCtrl* textCtrl = dynamic_cast<wxTextCtrl*>(event.GetEventObject());
     accessData[event.GetId()] = textCtrl->GetValue();
 }
+

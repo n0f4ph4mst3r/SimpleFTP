@@ -1,3 +1,25 @@
+### v0.2.0 (2022-02-20)
+
+##### Chores
+
+*  add preprocessor directive (_CRT_SECURE_NO_WARNINGS) [d4606eaa](https://github.com/n0f4ph4mst3r/FTP-Client/d4606eaa)
+
+##### New Features
+
+*  system messages are now displayed in footer [8e99e029](https://github.com/n0f4ph4mst3r/FTP-Client/8e99e029)
+
+##### Other Changes
+
+*  connection to server implemented using boost::asio [b323addb](https://github.com/n0f4ph4mst3r/FTP-Client/b323addb)
+
+##### Refactors
+
+* **ClientApp:**
+  *  change event handling code [95b4d1ef](https://github.com/n0f4ph4mst3r/FTP-Client/95b4d1ef)
+  *  remove footerListBox and replace it with a footerTextCtrl [9184787d](https://github.com/n0f4ph4mst3r/FTP-Client/9184787d)
+  *  inject elements boost::asio into the event handler [a42e9665](https://github.com/n0f4ph4mst3r/FTP-Client/a42e9665)
+  *  transfer enum to cpp file [a0c3456d](https://github.com/n0f4ph4mst3r/FTP-Client/a0c3456d)
+
 ### v0.1.0 (2022-01-31)
 
 ##### Documentation Changes
