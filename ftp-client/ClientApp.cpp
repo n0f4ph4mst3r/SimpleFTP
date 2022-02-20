@@ -12,7 +12,8 @@ enum {
     ID_HOST_DATA,
     ID_LOGIN_DATA,
     ID_PORT_DATA,
-    ID_PASSWORD_DATA
+    ID_PASSWORD_DATA,
+    ID_LOGGER
 };
 
 wxBEGIN_EVENT_TABLE(ClientApp, wxFrame)
@@ -137,10 +138,14 @@ ClientApp::ClientApp(const wxString& title)
     footer = new wxPanel(this, -1, wxDefaultPosition, wxSize(700, 150));
     footer->SetBackgroundColour(wxColor(128, 0, 128)); //need delete
 
-    footerListBox = new wxListBox(footer, -1);
+    wxTextCtrl* footerTextCtrl = new wxTextCtrl(footer, ID_LOGGER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH);
+
+    footerTextCtrl->Bind(wxEVT_SET_FOCUS, [footerTextCtrl](wxFocusEvent&) {
+        HideCaret(footerTextCtrl->GetHWND());
+        });
 
     footerSizer = new wxBoxSizer(wxVERTICAL);
-    footerSizer->Add(footerListBox, 1, wxEXPAND | wxALL, 5);
+    footerSizer->Add(footerTextCtrl, 1, wxEXPAND | wxALL, 5);
     footer->SetSizer(footerSizer);
 
     //Set sizers for main frame
@@ -155,6 +160,7 @@ ClientApp::ClientApp(const wxString& title)
 }
 
 void ClientApp::connectionClicked(wxCommandEvent&) {
+    wxTextCtrl* footerTextCtrl = dynamic_cast<wxTextCtrl*>(FindWindowById(ID_LOGGER));
     try
     {
         boost::asio::io_context io_context;
@@ -176,7 +182,6 @@ void ClientApp::connectionClicked(wxCommandEvent&) {
             //send request
             request_stream << "USER " << accessData[ID_LOGIN_DATA] << "\r\n";
             request_stream << "PASS " << accessData[ID_PASSWORD_DATA] << "\r\n";
-            request_stream << "PASV" << "\r\n";
             boost::asio::write(socket, request);
 
             //wait one second
@@ -184,22 +189,40 @@ void ClientApp::connectionClicked(wxCommandEvent&) {
 
             //get result 
             boost::asio::read_until(socket, result, "\r\n");
-            
-            wxMessageBox(wxT("Socket connected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
+
+            while (std::getline(result_stream, resultstr)) {
+                footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK));
+                footerTextCtrl->AppendText(resultstr);
+            }
+
+            footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLUE));
+
+            footerTextCtrl->AppendText("Socket connected\r\n");
         }
-        else wxLogError(wxT("Connection to command socket is fail"));
+        else {
+            footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
+            footerTextCtrl->AppendText("ERROR: Connection to command socket is fail\r\n");
+        }
     }
     catch (std::exception& e)
     {
-        wxLogError(e.what());
+        footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
+        std::ostream streamCtrl(footerTextCtrl);
+        streamCtrl << e.what() << "\r\n";
+        streamCtrl.flush();
     }
 }
 
 void ClientApp::disconnectionClicked(wxCommandEvent& event) {
-    wxMessageBox(wxT("Disconnected"), wxT("Message"), wxOK | wxICON_INFORMATION, this);
+    wxTextCtrl* footerTextCtrl = dynamic_cast<wxTextCtrl*>(FindWindowById(ID_LOGGER));
+
+    const wxFont* font = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, true);
+    footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, *wxBLUE, *font));
+    footerTextCtrl->AppendText("Disconneted!\r\n");
 }
 
 void ClientApp::accessDataChanged(wxCommandEvent& event) {
     wxTextCtrl* textCtrl = dynamic_cast<wxTextCtrl*>(event.GetEventObject());
     accessData[event.GetId()] = textCtrl->GetValue();
 }
+
