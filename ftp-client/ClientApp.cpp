@@ -22,7 +22,7 @@ wxEND_EVENT_TABLE()
 ClientApp::ClientApp(const wxString& title)
     : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize) {
 
-    accessData = { {ID_HOST_DATA, "localhost"},
+    accessData = { {ID_HOST_DATA, "127.0.0.1"},
                    {ID_LOGIN_DATA, wxEmptyString},
                    {ID_PORT_DATA, wxEmptyString},
                    {ID_PASSWORD_DATA, wxEmptyString}, };
@@ -65,7 +65,7 @@ ClientApp::ClientApp(const wxString& title)
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Port")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Password")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
 
-    hostCtrl = new wxTextCtrl(accessPanelMain, ID_HOST_DATA, wxT("localhost"), wxDefaultPosition, wxSize(125, 20));
+    hostCtrl = new wxTextCtrl(accessPanelMain, ID_HOST_DATA, wxT("127.0.0.1"), wxDefaultPosition, wxSize(125, 20));
     userCtrl = new wxTextCtrl(accessPanelMain, ID_LOGIN_DATA, wxEmptyString, wxDefaultPosition, wxSize(125, 20));
     portCtrl = new wxTextCtrl(accessPanelMain, ID_PORT_DATA, wxEmptyString, wxDefaultPosition, wxSize(125, 20));
     passwordCtrl = new wxTextCtrl(accessPanelMain, ID_PASSWORD_DATA, wxEmptyString, wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD);
