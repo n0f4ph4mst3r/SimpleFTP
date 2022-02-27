@@ -1,3 +1,13 @@
+### v0.3.0 (2022-02-27)
+
+##### Refactors
+
+* **ClientApp:**
+  *  disconnectButton handler cleans wxListBox now [f6fcb14b](https://github.com/n0f4ph4mst3r/FTP-Client/f6fcb14b)
+  *  change connectButton hanler code. [d56f601a](https://github.com/n0f4ph4mst3r/FTP-Client/d56f601a)
+  *  serverlist is wxListBox now [4f28b62a](https://github.com/n0f4ph4mst3r/FTP-Client/4f28b62a)
+  *  change default host [48d38318](https://github.com/n0f4ph4mst3r/FTP-Client/48d38318)
+
 ### v0.2.0 (2022-02-20)
 
 ##### Chores
