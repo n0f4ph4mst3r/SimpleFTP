@@ -267,10 +267,11 @@ void ClientApp::connectionClicked(wxCommandEvent&) {
 
 void ClientApp::disconnectionClicked(wxCommandEvent& event) {
     wxTextCtrl* footerTextCtrl = dynamic_cast<wxTextCtrl*>(FindWindowById(ID_LOGGER));
-
     const wxFont* font = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, true);
     footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, *wxBLUE, *font));
     footerTextCtrl->AppendText("Disconneted!\r\n");
+    serverDirs->Enable(false);
+    serverDirs->Clear();
 }
 
 void ClientApp::accessDataChanged(wxCommandEvent& event) {
