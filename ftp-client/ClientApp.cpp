@@ -1,6 +1,8 @@
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 #include "ClientApp.h"
 
 using boost::asio::ip::tcp;
@@ -22,7 +24,7 @@ wxEND_EVENT_TABLE()
 ClientApp::ClientApp(const wxString& title)
     : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxDefaultSize) {
 
-    accessData = { {ID_HOST_DATA, "localhost"},
+    accessData = { {ID_HOST_DATA, "127.0.0.1"},
                    {ID_LOGIN_DATA, wxEmptyString},
                    {ID_PORT_DATA, wxEmptyString},
                    {ID_PASSWORD_DATA, wxEmptyString}, };
@@ -65,7 +67,7 @@ ClientApp::ClientApp(const wxString& title)
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Port")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
     accessPanelMainSizer->Add(new wxStaticText(accessPanelMain, -1, wxT("Password")), 0, wxALIGN_BOTTOM | wxBOTTOM | wxLEFT, 5);
 
-    hostCtrl = new wxTextCtrl(accessPanelMain, ID_HOST_DATA, wxT("localhost"), wxDefaultPosition, wxSize(125, 20));
+    hostCtrl = new wxTextCtrl(accessPanelMain, ID_HOST_DATA, wxT("127.0.0.1"), wxDefaultPosition, wxSize(125, 20));
     userCtrl = new wxTextCtrl(accessPanelMain, ID_LOGIN_DATA, wxEmptyString, wxDefaultPosition, wxSize(125, 20));
     portCtrl = new wxTextCtrl(accessPanelMain, ID_PORT_DATA, wxEmptyString, wxDefaultPosition, wxSize(125, 20));
     passwordCtrl = new wxTextCtrl(accessPanelMain, ID_PASSWORD_DATA, wxEmptyString, wxDefaultPosition, wxSize(125, 20), wxTE_PASSWORD);
@@ -105,7 +107,8 @@ ClientApp::ClientApp(const wxString& title)
     centerSizer = new wxFlexGridSizer (1, 3, 0, 0);
 
     clientDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
-    serverDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
+    serverDirs = new wxListBox(centerPanel, -1, wxDefaultPosition, wxSize(300, -1));
+    serverDirs->Enable(false);
 
     //Switch
     switchPanel = new wxPanel(centerPanel, -1, wxDefaultPosition, wxSize(95, -1));
@@ -161,6 +164,7 @@ ClientApp::ClientApp(const wxString& title)
 
 void ClientApp::connectionClicked(wxCommandEvent&) {
     wxTextCtrl* footerTextCtrl = dynamic_cast<wxTextCtrl*>(FindWindowById(ID_LOGGER));
+    footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, *wxWHITE, *wxNORMAL_FONT));
     try
     {
         boost::asio::io_context io_context;
@@ -168,40 +172,88 @@ void ClientApp::connectionClicked(wxCommandEvent&) {
         tcp::resolver resolver(io_context);
         tcp::resolver::results_type endpoints = resolver.resolve(accessData[ID_HOST_DATA].ToStdString(), "ftp");
 
-        tcp::socket socket(io_context);
-        boost::asio::connect(socket, endpoints);
+        tcp::socket commandSocket(io_context);
+        boost::asio::connect(commandSocket, endpoints);
 
-        boost::asio::streambuf result;
-        std::istream result_stream(&result);
-        std::string resultstr;
+        boost::asio::streambuf response;
+        std::istream response_stream_login(&response);
+        std::istream response_stream_pasv(&response);
+
         boost::asio::streambuf request;
         std::ostream request_stream(&request);
 
-        if (socket.is_open()) {
+        std::string sipaddress, sport;
 
+        if (commandSocket.is_open()) {
             //send request
             request_stream << "USER " << accessData[ID_LOGIN_DATA] << "\r\n";
             request_stream << "PASS " << accessData[ID_PASSWORD_DATA] << "\r\n";
-            boost::asio::write(socket, request);
+            boost::asio::write(commandSocket, request);
 
             //wait one second
             boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-
-            //get result 
-            boost::asio::read_until(socket, result, "\r\n");
-
-            while (std::getline(result_stream, resultstr)) {
+            boost::asio::read_until(commandSocket, response, boost::regex("\r\n"));
+            
+            std::string sresponse;
+            while(response_stream_login.peek() != EOF && std::getline(response_stream_login, sresponse)) {
                 footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK));
-                footerTextCtrl->AppendText(resultstr);
+                footerTextCtrl->AppendText(std::move(sresponse));
             }
+            response_stream_login.clear();
+
+            request_stream.flush();
+            request_stream << "PASV" << "\r\n";
+            boost::asio::write(commandSocket, request);
+
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+            boost::asio::read_until(commandSocket, response, boost::regex("\r\n"));
+            std::getline(response_stream_pasv, sresponse);
+            
+            boost::regex regex_ip(".+\\(([0-9]{1,}),([0-9]{1,}),([0-9]{1,}),([0-9]{1,}),([0-9]{1,}),([0-9]{1,})\\).*");
+            //Get a IP address string
+            sipaddress = boost::regex_replace(sresponse, regex_ip, "$1.$2.$3.$4", boost::format_all);
+            unsigned int itmp1 = boost::lexical_cast<unsigned int>(boost::regex_replace(sresponse, regex_ip, "$5", boost::format_all));
+            unsigned int itmp2 = boost::lexical_cast<unsigned int>(boost::regex_replace(sresponse, regex_ip, "$6", boost::format_all));
+
+            //Get a Port number(16bit) string
+            sport = boost::lexical_cast<std::string>(itmp1 * 256 + itmp2);
 
             footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLUE));
-
-            footerTextCtrl->AppendText("Socket connected\r\n");
+            footerTextCtrl->AppendText("Command socket connected\r\n");
         }
         else {
             footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
             footerTextCtrl->AppendText("ERROR: Connection to command socket is fail\r\n");
+        }
+
+        tcp::resolver::query query_trsans(sipaddress, sport);
+        tcp::resolver::results_type endpoints_trsans = resolver.resolve(query_trsans);
+
+        tcp::socket dataSocket(io_context);
+        boost::asio::connect(dataSocket, endpoints_trsans);
+
+        std::istream response_stream_list(&response);
+
+        if (dataSocket.is_open()) {
+            request_stream.flush();
+            request_stream << "LIST" << "\r\n";
+            boost::asio::write(commandSocket, request);
+
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+            boost::asio::read_until(dataSocket, response, boost::regex("\r\n"));
+
+            std::string sresponse;
+            while (response_stream_list.peek() != EOF && std::getline(response_stream_list, sresponse)) {
+                serverDirs->Append(std::move(sresponse));
+            }
+ 
+            footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLUE));
+            footerTextCtrl->AppendText("Data socket connected\r\n");
+            serverDirs->Enable(true);
+        }
+        else {
+            footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxRED));
+            footerTextCtrl->AppendText("ERROR: Connection to data socket is fail\r\n");
         }
     }
     catch (std::exception& e)
@@ -215,10 +267,11 @@ void ClientApp::connectionClicked(wxCommandEvent&) {
 
 void ClientApp::disconnectionClicked(wxCommandEvent& event) {
     wxTextCtrl* footerTextCtrl = dynamic_cast<wxTextCtrl*>(FindWindowById(ID_LOGGER));
-
     const wxFont* font = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, true);
     footerTextCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, *wxBLUE, *font));
     footerTextCtrl->AppendText("Disconneted!\r\n");
+    serverDirs->Enable(false);
+    serverDirs->Clear();
 }
 
 void ClientApp::accessDataChanged(wxCommandEvent& event) {

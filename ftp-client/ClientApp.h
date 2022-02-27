@@ -63,7 +63,7 @@ private:
 
     //GenericDir
     wxGenericDirCtrl* clientDirs;
-    wxGenericDirCtrl* serverDirs;
+    wxListBox* serverDirs;
 
     //buttons
     wxButton* rightshift;
