@@ -105,7 +105,8 @@ ClientApp::ClientApp(const wxString& title)
     centerSizer = new wxFlexGridSizer (1, 3, 0, 0);
 
     clientDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
-    serverDirs = new wxGenericDirCtrl(centerPanel, -1, wxDirDialogDefaultFolderStr, wxDefaultPosition, wxSize(300, -1));
+    serverDirs = new wxListBox(centerPanel, -1, wxDefaultPosition, wxSize(300, -1));
+    serverDirs->Enable(false);
 
     //Switch
     switchPanel = new wxPanel(centerPanel, -1, wxDefaultPosition, wxSize(95, -1));
