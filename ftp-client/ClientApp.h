@@ -1,24 +1,16 @@
 #pragma once
-#include <boost/asio.hpp>
-#include <boost/array.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/regex.hpp>
-#include <boost/format.hpp>
+#include "AsioClientFTP.h"
 
 #include <wx/wx.h>
-#include <wx/dirctrl.h>
 #include <wx/event.h>
-#include <wx/mimetype.h>
-#include <wx/datetime.h>
-#include <wx/listctrl.h>
-#include <wx/arrstr.h>
-#include <wx/artprov.h>
+#include <wx/splitter.h>
+
+#include "wxLogCtrl.h"
+#include "wxServerTreeCtrltemData.h"
+#include "wxFTPGenericDirCtrl.h"
 
 #include <map>
-
-#include "enumMessage.h"
-#include "ServerTreeCtrltemData.h"
+#include <memory>
 
 using boost::asio::ip::tcp;
 
@@ -26,38 +18,36 @@ class ClientApp : public wxFrame
 {
  public:
     ClientApp(const wxString& title);
-    wxDECLARE_EVENT_TABLE();
  private:
-    //login, port and etc.
-    std::map <int, wxString> accessData;
+    std::map <int, wxString> accessData; //login, port and etc.
 
-    boost::asio::io_context io_context;
-    tcp::resolver resolver;
-    tcp::socket commandSocket;
+    std::unique_ptr<wxFTPWrapper> client; //work with FTP
 
-    wxListView* logCtrl;
-    bool frameDragged = false;
-    bool logCtrlFreezed = false;
-
-    wxTreeCtrl* serverTree;
+    //widgets
+    wxLogCtrl* logCtrl;
+    wxFTPGenericDirCtrl* serverTree;
     wxGenericDirCtrl* clientTree;
 
-    std::string SendRequest(const std::string request);
-    std::string PrintResponse();
-    void ExtractFiles(const wxTreeItemId& root);
-    void PrintMessage(const std::string& msg, Message type = Message::STATUS);
     void Shutdown();
 
     //events
-    void connectionClicked(wxCommandEvent& event);
-    void disconnectionClicked(wxCommandEvent& event);
-    void accessDataChanged(wxCommandEvent& event);
-    void serverDirItemClicked(wxMouseEvent& event);
-    void LoggerColumnBeginDragged(wxListEvent& event);
-    void LoggerColumnDragged(wxListEvent& event);
-    void LoggerColumnEndDragged(wxListEvent& event);
-    void LoggerItemInsert(wxListEvent& event);
-    void FrameSizeChanged(wxSizeEvent& event);
-    void FrameIdle(wxIdleEvent& event);
+    void ConnectionClicked(wxCommandEvent& event);
+    void DisconnectionClicked(wxCommandEvent& event);
+    void AccessDataChanged(wxCommandEvent& event);
+
+    enum {
+        wxID_BUTTON_CONNECT = wxID_HIGHEST + 1,
+        wxID_BUTTON_DISCONNECT,
+        wxID_CONNECTION_HOST,
+        wxID_CONNECTION_LOGIN,
+        wxID_CONNECTION_PORT,
+        wxID_CONNECTION_PASSWORD,
+        wxID_FOOTER,
+        wxID_LOGGER,
+        wxID_TREE_SERVER,
+        wxID_TREE_SERVER_ITEM
+    };
+
+    wxDECLARE_EVENT_TABLE();
 };
 

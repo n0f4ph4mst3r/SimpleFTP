@@ -147,15 +147,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AsioClientFTP.cpp" />
     <ClCompile Include="ClientApp.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="ServerTreeCtrltemData.cpp" />
+    <ClCompile Include="FTPrespone.cpp" />
+    <ClCompile Include="wxServerTreeCtrltemData.cpp" />
+    <ClCompile Include="wxFTPWrapper.cpp" />
+    <ClCompile Include="wxFTPGenericDirCtrl.cpp" />
+    <ClCompile Include="wxLogCtrl.cpp" />
+    <ClCompile Include="wxLogMessageItem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AsioClientFTP.h" />
     <ClInclude Include="ClientApp.h" />
     <ClInclude Include="enumMessage.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="ServerTreeCtrltemData.h" />
+    <ClInclude Include="FTPresponse.h" />
+    <ClInclude Include="wxServerTreeCtrltemData.h" />
+    <ClInclude Include="wxFTPWrapper.h" />
+    <ClInclude Include="wxFTPGenericDirCtrl.h" />
+    <ClInclude Include="wxLogCtrl.h" />
+    <ClInclude Include="wxLogMessageItem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
