@@ -149,10 +149,13 @@
   <ItemGroup>
     <ClCompile Include="ClientApp.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ServerTreeCtrltemData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClientApp.h" />
+    <ClInclude Include="enumMessage.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="ServerTreeCtrltemData.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
