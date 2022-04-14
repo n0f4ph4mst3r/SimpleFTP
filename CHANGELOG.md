@@ -1,3 +1,9 @@
+### v0.4.0 (2022-04-14)
+
+##### New Features
+
+*  client now lists server files in tree view [d7ea6b76](https://github.com/n0f4ph4mst3r/FTP-Client/d7ea6b76)
+
 ### v0.3.0 (2022-02-27)
 
 ##### Refactors
