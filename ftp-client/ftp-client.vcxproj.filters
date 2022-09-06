@@ -21,7 +21,7 @@
     <ClCompile Include="ClientApp.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="wxServerTreeCtrltemData.cpp">
+    <ClCompile Include="wxRemoteTreeCtrlItemData.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="FTPrespone.cpp">
@@ -33,13 +33,25 @@
     <ClCompile Include="wxLogMessageItem.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="AsioClientFTP.cpp">
+    <ClCompile Include="IAsioClientFTP.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="wxFTPWrapper.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="wxFTPGenericDirCtrl.cpp">
+    <ClCompile Include="wxRemoteTreeCtrl.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="wxILogCtrl.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="wxTaskManager.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="wxLocalDirCtrl.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="wxRemoteDropTarget.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,7 +62,7 @@
     <ClInclude Include="ClientApp.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="wxServerTreeCtrltemData.h">
+    <ClInclude Include="wxRemoteTreeCtrlItemData.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="FTPresponse.h">
@@ -62,7 +74,7 @@
     <ClInclude Include="wxLogMessageItem.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="AsioClientFTP.h">
+    <ClInclude Include="IAsioClientFTP.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="enumMessage.h">
@@ -71,7 +83,22 @@
     <ClInclude Include="wxFTPWrapper.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="wxFTPGenericDirCtrl.h">
+    <ClInclude Include="wxRemoteTreeCtrl.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="wxILogCtrl.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="wxTaskManager.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="wxLocalDirCtrl.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="wxRemoteDropTarget.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="wxTransferTransaction.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
