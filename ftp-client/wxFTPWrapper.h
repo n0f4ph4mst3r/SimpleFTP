@@ -1,12 +1,15 @@
 #pragma once
-#include "AsioClientFTP.h"
-#include "wxLogCtrl.h"
+#include "IAsioClientFTP.h"
+#include "wxTaskManager.h"
 
-class wxFTPWrapper : public AsioClientFTP
+class wxFTPWrapper : public IAsioClientFTP
 {
-public: 
-	wxFTPWrapper(wxLogCtrl& logCtrl);
-	virtual void PrintMessage(const std::string& msg, Message type = Message::STATUS) override;
 private:
-	wxLogCtrl& logCtrl;
+	wxTaskManager* m_taskManager;
+public:
+	wxFTPWrapper(wxTaskManager* taskManger);
+	virtual void PrintMessage(const std::string& msg, Message type = Message::STATUS) override;
+	virtual void UpdateTask(const size_t data) override;
+	virtual void TaskCompleted() override;
+	virtual void TaskFailed(const std::string& reason) override;
 };

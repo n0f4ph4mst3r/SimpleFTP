@@ -7,20 +7,14 @@ FTPresponse::FTPresponse (const std::string& str) {
 		std::string scode = boost::regex_replace(str, boost::regex("^(?<code>[0-9]{3}).*\r"), "$+{code}", boost::format_all);
 		if (scode.length() != 3) throw std::exception();
 
-		code = std::stoi(scode);
+		ncode = std::stoi(scode);
 
 		switch (scode[0] - '0') {
 		case 2:
-			isFine = true;
-			isOk = true;
+			IsFine = true;
 			break;
-		case 1: case 3: 
-			isFine = false;
-			isOk = true;
-			break;
-		case 4: case 5:
-			isFine = false;
-			isOk = false;
+		case 1: case 3: case 4: case 5:
+			IsFine = false;
 			break;
 		default:
 			throw std::exception();
@@ -30,9 +24,8 @@ FTPresponse::FTPresponse (const std::string& str) {
 	}
 	catch (std::exception& e)
 	{
-		code = 0;
+		ncode = 0;
 		message = "";
-		isFine = false;
-		isOk = false;
+		IsFine = false;
 	}
 }

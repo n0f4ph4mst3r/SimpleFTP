@@ -1,3 +1,9 @@
+### v0.5.0 (2022-09-06)
+
+##### New Features
+
+*  implement downloading files from the server [d8a477f1](https://github.com/n0f4ph4mst3r/FTP-Client/d8a477f1)
+
 ### v0.5.0 (2022-05-03)
 
 ##### Refactors

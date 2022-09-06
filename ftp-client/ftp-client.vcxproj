@@ -147,27 +147,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AsioClientFTP.cpp" />
+    <ClCompile Include="IAsioClientFTP.cpp" />
     <ClCompile Include="ClientApp.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FTPrespone.cpp" />
-    <ClCompile Include="wxServerTreeCtrltemData.cpp" />
+    <ClCompile Include="wxRemoteDropTarget.cpp" />
+    <ClCompile Include="wxLocalDirCtrl.cpp" />
+    <ClCompile Include="wxILogCtrl.cpp" />
+    <ClCompile Include="wxRemoteTreeCtrlItemData.cpp" />
     <ClCompile Include="wxFTPWrapper.cpp" />
-    <ClCompile Include="wxFTPGenericDirCtrl.cpp" />
+    <ClCompile Include="wxRemoteTreeCtrl.cpp" />
     <ClCompile Include="wxLogCtrl.cpp" />
     <ClCompile Include="wxLogMessageItem.cpp" />
+    <ClCompile Include="wxTaskManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AsioClientFTP.h" />
+    <ClInclude Include="IAsioClientFTP.h" />
     <ClInclude Include="ClientApp.h" />
     <ClInclude Include="enumMessage.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="FTPresponse.h" />
-    <ClInclude Include="wxServerTreeCtrltemData.h" />
+    <ClInclude Include="wxRemoteDropTarget.h" />
+    <ClInclude Include="wxLocalDirCtrl.h" />
+    <ClInclude Include="wxRemoteTreeCtrlItemData.h" />
     <ClInclude Include="wxFTPWrapper.h" />
-    <ClInclude Include="wxFTPGenericDirCtrl.h" />
+    <ClInclude Include="wxRemoteTreeCtrl.h" />
     <ClInclude Include="wxLogCtrl.h" />
     <ClInclude Include="wxLogMessageItem.h" />
+    <ClInclude Include="wxILogCtrl.h" />
+    <ClInclude Include="wxTaskManager.h" />
+    <ClInclude Include="wxTransferTransaction.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

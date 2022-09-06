@@ -7,8 +7,8 @@
 
 struct wxLogMessageItem {
     wxLogMessageItem(const wxString& msg, Message type = Message::STATUS);
-    wxString date;
-    wxString stype;
-    wxString message;
-    wxColour colour;
+    wxString m_date;
+    wxString m_stype;
+    wxString m_message;
+    wxColour m_colour;
 };
