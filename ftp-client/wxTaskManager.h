@@ -1,4 +1,6 @@
 #pragma once
+#include "wxFTPWrapper.h"
+
 #include <wx/splitter.h>
 #include <wx/notebook.h>
 #include <wx/dataview.h>
@@ -10,19 +12,29 @@
 class wxTaskManager : public wxSplitterWindow
 {
 private:
+	std::shared_ptr<wxFTPWrapper> m_owner;
+
 	wxDataViewListCtrl* m_queuededFilesCtrl;
 	wxDataViewListCtrl* m_failedTransfersCtrl;
 	wxDataViewListCtrl* m_succesfulTransfersCtrl;
 
 	wxLogCtrl* m_logCtrl;
 
+	void TaskToVariant(const wxTransferTransaction& task, wxVector<wxVariant>& data);
+
+	//events
+	void ItemContext(wxDataViewEvent& event);
+
+	void TaskAdded(wxCommandEvent& event);
+	void TaskUpdated(wxThreadEvent& event);
+	void TaskCompleted(wxThreadEvent& event);
+	void TaskFailed(wxThreadEvent& event);
+
+	void PrintMessage(wxCommandEvent& event);
+
+	enum {
+		wxID_LOGGER_CLEAR = wxID_HIGHEST + 1
+	};
 public:
-	wxTaskManager(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(700, 300));
-
-	void AddTask(const std::string& target, const std::string& source, const size_t size);
-	void UpdateTask(const size_t data);
-	void TaskCompleted();
-	void TaskFailed(const std::string& reason);
-
-	void PrintMessage(const std::string& msg, Message type = Message::STATUS);
+	wxTaskManager(std::shared_ptr<wxFTPWrapper> pclient, wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(700, 300));
 };

@@ -1,7 +1,7 @@
 #include "wxLogMessageItem.h"
 
 wxLogMessageItem::wxLogMessageItem(const wxString& msg, Message type) {
-	m_date = wxDateTime::Now().Format(wxT("%d.%m.%y %H:%M:%S"), wxDateTime::CET);
+	m_date = wxDateTime::Now().Format(wxT("%d.%m.%y %H:%M:%S"), wxDateTime::Local);
 
 	switch (type) {
         case Message::STATUS:
@@ -42,4 +42,5 @@ wxLogMessageItem::wxLogMessageItem(const wxString& msg, Message type) {
     }
 
     m_message = wxString::FromUTF8(msg);
+    if (m_message == wxEmptyString) m_message = msg;
 }
