@@ -5,8 +5,7 @@ using boost::asio::ip::tcp;
 IAsioClientFTP::IAsioClientFTP() : m_resolver(m_context), m_commandSocket(m_context) {}
 
 bool IAsioClientFTP::Connect() {
-    try
-    {
+    try {
         PrintMessage((boost::format("Connecting to %d...") % m_host).str()); 
 
         tcp::resolver::query query(m_host, m_port);
@@ -16,8 +15,7 @@ bool IAsioClientFTP::Connect() {
         tcp::resolver::iterator end;
 
         boost::system::error_code error = boost::asio::error::host_not_found;
-        while (error && endpoint_iterator != end)
-        {
+        while (error && endpoint_iterator != end) {
             m_commandSocket.close();
             m_commandSocket.connect(*endpoint_iterator++, error);
         }
@@ -29,8 +27,7 @@ bool IAsioClientFTP::Connect() {
             PrintMessage("Command socket connected.");
         else throw std::runtime_error("Couldnt't connect to command socket.");
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         PrintMessage(e.what(), Message::EC);
         Shutdown();
         return false;
@@ -39,7 +36,7 @@ bool IAsioClientFTP::Connect() {
     return true;
 }
 
-void IAsioClientFTP::Connect_Data(tcp::socket& sock) {
+void IAsioClientFTP::Connect_Data(tcp::socket& socket) {
     PrintMessage("Connecting to data socket...");
     std::string sport = boost::regex_replace(SendRequest("EPSV").message, boost::regex(".+ \\([[:print:]]{3}(\\d{1,5})[[:print:]]\\)\r", boost::regex::perl), "$1", boost::format_all);
 
@@ -49,12 +46,12 @@ void IAsioClientFTP::Connect_Data(tcp::socket& sock) {
 
     boost::system::error_code error = boost::asio::error::host_not_found;
     while (error && endpoints_trsans != end) {
-        sock.close();
-        sock.connect(*endpoints_trsans++, error);
+        socket.close();
+        socket.connect(*endpoints_trsans++, error);
     }
     if (error) throw boost::system::system_error(error);
 
-    if (sock.is_open()) PrintMessage("Data socket connected.");
+    if (socket.is_open()) PrintMessage("Data socket connected.");
     else throw std::runtime_error("Couldnt't establish connection to data socket!");
 }
 
@@ -96,8 +93,7 @@ FTPresponse IAsioClientFTP::PrintResponse() {
     std::istream response_stream(&responsebuf);
     std::string sresponse;
     FTPresponse response;
-    while (response_stream.peek() != EOF && std::getline(response_stream, sresponse))
-    {
+    while (response_stream.peek() != EOF && std::getline(response_stream, sresponse)) {
         response = FTPresponse(sresponse);
         if (response.ncode != 0) PrintMessage(response.message, Message::RESPONSE); 
         else throw std::runtime_error("Missing response.");
@@ -107,17 +103,17 @@ FTPresponse IAsioClientFTP::PrintResponse() {
     return response;
 }
 
-std::optional<std::list<std::string>> IAsioClientFTP::ExtractList(const std::string& dir) {
+std::optional<std::list<std::string>> IAsioClientFTP::ExtractList(const std::string& path) {
     std::list<std::string> extractedList;
-    try
-    {
-        if (m_currentDir != dir) {
-            if (!SwitchDirectory(dir)) return std::nullopt;
+    try {
+        if (m_currentDir != path) {
+            if (!SwitchDirectory(path)) return std::nullopt;
         } 
 
         tcp::socket dataSocket(m_context);
         Connect_Data(dataSocket);
-        PrintMessage((boost::format("Retrieving directory \"%d\"...") % dir).str());
+
+        PrintMessage((boost::format("Retrieving directory \"%d\"...") % path).str());
         FTPresponse MLSDresponse = SendRequest("MLSD");
         if (MLSDresponse.IsFine || MLSDresponse.ncode == 150 || MLSDresponse.ncode == 125) {
             dataSocket.wait(dataSocket.wait_read);
@@ -129,25 +125,27 @@ std::optional<std::list<std::string>> IAsioClientFTP::ExtractList(const std::str
                  boost::system::error_code error;
                  boost::asio::read(dataSocket, responsebuf, boost::asio::transfer_at_least(1), error);
                  if (error == boost::asio::error::eof) break; // Connection closed cleanly by peer.
-                 else if (error) throw error; // Some other error.
+                 else if (error) {
+                     if (dataSocket.is_open()) dataSocket.close();
+                     throw boost::system::system_error(error); // Some other error.
+                 }
             }
-
-            while (response_stream.peek() != EOF && std::getline(response_stream, sresponse))
-                extractedList.push_back(sresponse);
-            response_stream.clear();
+            if (dataSocket.is_open()) dataSocket.close();
 
             if (!MLSDresponse.IsFine) {
                 while (m_commandSocket.available() == 0) m_commandSocket.wait(m_commandSocket.wait_read);
                 PrintResponse();
             }
 
-            PrintMessage((boost::format("Directory listing of \"%d\" successful.") % dir).str());
-            dataSocket.close();
+            while (response_stream.peek() != EOF && std::getline(response_stream, sresponse))
+                extractedList.push_back(sresponse);
+            response_stream.clear();
+
+            PrintMessage((boost::format("Directory listing of \"%d\" successful.") % path).str());
         }
         else throw std::runtime_error("Couldnt't extract list of contents.");
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         PrintMessage(e.what(), Message::EC);
         return std::nullopt;
     }
@@ -155,35 +153,90 @@ std::optional<std::list<std::string>> IAsioClientFTP::ExtractList(const std::str
     return extractedList;
 }
 
-bool IAsioClientFTP::DownloadFile(const std::string& target, const std::string& source, unsigned encoding) {
-    try
-    {
-        std::ofstream out;
-        if (encoding == ASCII) SendRequest("TYPE A").IsFine ? out.open(target, std::ios::trunc | std::ios_base::out) : throw std::runtime_error((boost::format("Couldnt't download file \"%1%\"!") % source).str());
-        else SendRequest("TYPE I").IsFine ? out.open(target, std::ios::binary | std::ios::trunc | std::ios_base::out) : throw std::runtime_error((boost::format("Couldnt't download file \"%1%\"!") % source).str());
-        if (!out.is_open()) throw std::runtime_error("Access denied.");
+bool IAsioClientFTP::LoadFile(const std::string& target, const std::string& source, unsigned encoding)
+{
+    try {
+        std::ifstream in;
+        if (encoding == ASCII) SendRequest("TYPE A").IsFine ? in.open(source, std::ios_base::in) : throw std::runtime_error("Encoding Error!");
+        else SendRequest("TYPE I").IsFine ? in.open(source, std::ios::binary | std::ios_base::in) : throw std::runtime_error("Encoding Error!");
+        if (!in.is_open()) throw std::runtime_error("Access denied.");
 
-        PrintMessage((boost::format("Downloading file \"%1%\"...") % source).str());
         tcp::socket dataSocket(m_context);
         Connect_Data(dataSocket);
+
+        PrintMessage((boost::format("Uploading file \"%1%\"...") % source).str());
+        FTPresponse STORresponse = SendRequest((boost::format("STOR %d") % target).str());
+        if (STORresponse.IsFine || STORresponse.ncode == 125 || STORresponse.ncode == 150) {
+            dataSocket.wait(dataSocket.wait_write);
+            for (;;) {
+                std::array<char, 4096> buf;
+                in.read(buf.data(), sizeof(buf));
+                int size = in.gcount();
+                if (size == 0) break;
+                else {
+                    boost::system::error_code error;
+                    dataSocket.write_some(boost::asio::buffer(buf, size), error);
+
+                    if (error == boost::asio::error::eof) break; // Connection closed cleanly by peer.
+                    else if (error) {
+                        if (dataSocket.is_open()) dataSocket.close();
+                        throw boost::system::system_error(error); // Some other error.
+                    }
+                    UpdateTask(size);
+                }
+                
+            }
+            if (dataSocket.is_open()) dataSocket.close();
+
+            if (!STORresponse.IsFine) {
+                while (m_commandSocket.available() == 0) m_commandSocket.wait(m_commandSocket.wait_read);
+                PrintResponse();
+            }
+            TaskCompleted();
+
+            std::size_t found = source.find_last_of(std::filesystem::path::preferred_separator);
+            std::string name = source.substr(found + 1);
+            PrintMessage((boost::format("File \"%1%\" uploaded to \"%2%\".") % name % target).str());
+        }
+        else throw std::runtime_error("Invalid response code");
+    }
+    catch (std::exception& e) {
+        TaskFailed(e.what());
+        PrintMessage(e.what(), Message::EC);
+        return false;
+    }
+    return true;
+}
+
+bool IAsioClientFTP::DownloadFile(const std::string& target, const std::string& source, unsigned encoding) {
+    try {
+        std::ofstream out;
+        if (encoding == ASCII) SendRequest("TYPE A").IsFine ? out.open(target, std::ios::trunc | std::ios_base::out) : throw std::runtime_error("Encoding Error!");
+        else SendRequest("TYPE I").IsFine ? out.open(target, std::ios::binary | std::ios::trunc | std::ios_base::out) : throw std::runtime_error("Encoding Error!");
+        if (!out.is_open()) throw std::runtime_error("Access denied.");
+
+        tcp::socket dataSocket(m_context);
+        Connect_Data(dataSocket);
+
+        PrintMessage((boost::format("Downloading file \"%1%\"...") % source).str());
         FTPresponse RETRresponse = SendRequest((boost::format("RETR %d") % source).str());
         if (RETRresponse.IsFine || RETRresponse.ncode == 125 || RETRresponse.ncode == 150) {
             dataSocket.wait(dataSocket.wait_read);
-
-            size_t size = 0;
             for (;;) {
                 std::array<char, 4096> buf;
                 boost::system::error_code error;
-                size_t len = dataSocket.read_some(boost::asio::buffer(buf), error);
+                int size = dataSocket.read_some(boost::asio::buffer(buf), error);
 
                 if (error == boost::asio::error::eof) break; // Connection closed cleanly by peer.
-                else if (error)
+                else if (error) {
+                    if (dataSocket.is_open()) dataSocket.close();
                     throw boost::system::system_error(error); // Some other error.
+                }
 
-                out.write(reinterpret_cast<char*>(&buf), len);
-                size += len;
+                out.write(reinterpret_cast<char*>(&buf), size);
                 UpdateTask(size);
             }
+            if (dataSocket.is_open()) dataSocket.close();
 
             if (!RETRresponse.IsFine) {
                 while (m_commandSocket.available() == 0) m_commandSocket.wait(m_commandSocket.wait_read);
@@ -197,8 +250,7 @@ bool IAsioClientFTP::DownloadFile(const std::string& target, const std::string& 
         }
         else throw std::runtime_error("Invalid response code");
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         TaskFailed(e.what());
         PrintMessage(e.what(), Message::EC);
         return false;
@@ -206,21 +258,31 @@ bool IAsioClientFTP::DownloadFile(const std::string& target, const std::string& 
     return true;
 }
 
-bool IAsioClientFTP::SwitchDirectory(const std::string& dir) {
-    try
-    {
+bool IAsioClientFTP::SwitchDirectory(const std::string& path) {
+    try {
         PrintMessage("Switching directory... ");
-        std::string path = dir;
-        if (path == "") path = "/";
+        std::string dir = path;
+        if (dir == "") dir = "/";
 
-        if (SendRequest((boost::format("CWD %d") % path).str()).IsFine) {
+        if (SendRequest((boost::format("CWD %d") % dir).str()).IsFine) {
             SendRequest("PWD");
-            m_currentDir = path;
+            m_currentDir = dir;
         }
         else throw std::runtime_error("Cant't change directory.");
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
+        PrintMessage(e.what(), Message::EC);
+        return false;
+    }
+    return true;
+}
+
+bool IAsioClientFTP::CreateDir(const std::string& path) {
+    try {
+        FTPresponse MKDresponse = SendRequest((boost::format("MKD %d") % path).str());
+        if (!MKDresponse.IsFine) return false;
+    }
+    catch (std::exception& e) {
         PrintMessage(e.what(), Message::EC);
         return false;
     }

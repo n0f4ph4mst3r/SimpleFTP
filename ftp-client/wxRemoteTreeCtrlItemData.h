@@ -6,6 +6,7 @@ protected:
     wxString m_path;
 public:
     wxRemoteTreeCtrlItemData(const std::string& path);
+    void SetPath(const std::string& path);
     std::string GetPath();
 };
 

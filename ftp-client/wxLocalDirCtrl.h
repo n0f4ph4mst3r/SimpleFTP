@@ -5,11 +5,14 @@
 #include <wx/filefn.h> 
 #include <wx/dir.h>
 #include <wx/filename.h>
+#include <wx/artprov.h>
 
 #include <optional>
 
 class wxLocalDirCtrl : public wxGenericDirCtrl {
 private:
+	bool m_bTreeEnabled;
+
 	std::optional<wxString> ShowDialogForCreateDir();
 
 	//events
@@ -22,7 +25,12 @@ private:
 public:
 	wxLocalDirCtrl(wxWindow* parent, const wxWindowID id = wxID_ANY, const wxString& dir = wxDirDialogDefaultFolderStr, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	void MakeDirectory(const wxString& path, const wxTreeItemId& rootId, bool dirExists = false);
-	bool RemoveFile(const wxString& path);
+
+	void EnableTree();
+	void DisableTree();
+
+	void MouseEvents(wxMouseEvent& event);
+	void KeyDown(wxKeyEvent& event);
 
 	enum {
 		wxID_OPEN_FILE_OR_DIR = wxID_HIGHEST + 1,

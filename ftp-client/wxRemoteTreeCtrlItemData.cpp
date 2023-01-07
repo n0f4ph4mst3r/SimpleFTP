@@ -2,6 +2,10 @@
 #include "wxRemoteTreeCtrlItemData.h"
 
 wxRemoteTreeCtrlItemData::wxRemoteTreeCtrlItemData(const std::string& path) {
+    SetPath(path);
+};
+
+void wxRemoteTreeCtrlItemData::SetPath(const std::string& path) {
     m_path = path;
 };
 

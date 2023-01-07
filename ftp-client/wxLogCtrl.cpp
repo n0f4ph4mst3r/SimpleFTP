@@ -20,8 +20,7 @@ void wxLogCtrl::InitLog() {
     InsertColumn(wxCOL_TYPE, "Type");
     InsertColumn(wxCOL_MSG, "Message");
 
-
-    PrintMessage("Welcome!");
+    PrintMessage(wxLogMessageItem("Welcome!"));
 }
 
 wxString wxLogCtrl::OnGetItemText(long item, long column) const {
@@ -49,13 +48,10 @@ wxListItemAttr* wxLogCtrl::OnGetItemAttr(long item) const {
     return plist;
 }
 
-void wxLogCtrl::PrintMessage(const wxString& msg, Message type) {
-	if (msg != "") {
-		wxLogMessageItem item = wxLogMessageItem(msg, type);
-		m_list.push_back(item);
-		SetItemCount(m_list.size());
-		EnsureVisible(GetItemCount()-1);
-	}
+void wxLogCtrl::PrintMessage(const wxLogMessageItem& msg) {
+	m_list.push_back(msg);
+	SetItemCount(m_list.size());
+	EnsureVisible(GetItemCount()-1);
 }
 
 

@@ -8,7 +8,14 @@ EVT_TREE_DELETE_ITEM(wxID_ANY, wxLocalDirCtrl::ItemDelete)
 wxEND_EVENT_TABLE()
 
 wxLocalDirCtrl::wxLocalDirCtrl(wxWindow* parent, const wxWindowID id, const wxString& dir, const wxPoint& pos, const wxSize& size)
-    : wxGenericDirCtrl(parent, id, dir, pos, size, wxDIRCTRL_3D_INTERNAL | wxDIRCTRL_EDIT_LABELS) {}
+    : wxGenericDirCtrl(parent, id, dir, pos, size, wxDIRCTRL_3D_INTERNAL | wxDIRCTRL_EDIT_LABELS) {
+    GetTreeCtrl()->Bind(wxEVT_LEFT_DOWN, &wxLocalDirCtrl::MouseEvents, this);
+    GetTreeCtrl()->Bind(wxEVT_RIGHT_DOWN, &wxLocalDirCtrl::MouseEvents, this);
+    GetTreeCtrl()->Bind(wxEVT_LEFT_DCLICK, &wxLocalDirCtrl::MouseEvents, this);
+    GetTreeCtrl()->Bind(wxEVT_RIGHT_DCLICK, &wxLocalDirCtrl::MouseEvents, this);
+    GetTreeCtrl()->Bind(wxEVT_KEY_DOWN, &wxLocalDirCtrl::KeyDown, this);
+    m_bTreeEnabled = true;
+}
 
 std::optional<wxString> wxLocalDirCtrl::ShowDialogForCreateDir() {
     wxDialog* popupWindow = new wxDialog(this, wxID_ANY, "Create directory");
@@ -19,11 +26,11 @@ std::optional<wxString> wxLocalDirCtrl::ShowDialogForCreateDir() {
 
     wxBoxSizer* pathCtrlSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto newPath = [=, this]() {
-        wxString root = GetPath();
-        wxChar lastChar = root[root.Length() - 1];
+    auto defaultPath = [=, this]() {
+        wxString path = GetPath();
+        if (!wxEndsWithPathSeparator(path)) path += wxFILE_SEP_PATH;
+        path += "New directory";
 
-        wxString path = lastChar == '\\' ? std::move(root) + "New directory" : std::move(root) + "\\New directory";
         if (wxDir::Exists(path)) {
             wxString tmp = path;
             unsigned counter = 1;
@@ -35,7 +42,7 @@ std::optional<wxString> wxLocalDirCtrl::ShowDialogForCreateDir() {
         }
         return path;
     };
-    wxTextCtrl* pathCtrl = new wxTextCtrl(popupWindow, wxID_ANY, newPath(), wxDefaultPosition, wxSize(300, -1));
+    wxTextCtrl* pathCtrl = new wxTextCtrl(popupWindow, wxID_ANY, defaultPath(), wxDefaultPosition, wxSize(300, -1));
     pathCtrlSizer->Add(pathCtrl, 0, wxEXPAND | wxALL, 5);
 
     frameSizer->Add(pathCtrlSizer);
@@ -78,31 +85,41 @@ void wxLocalDirCtrl::OnPopupMenu(wxTreeEvent& event) {
     wxMenu mnu;
     mnu.SetClientData(GetTreeCtrl()->GetItemData(item));
 
-    mnu.Append(wxID_OPEN_FILE_OR_DIR, "Open");
+    wxMenuItem* openItem = new wxMenuItem(&mnu, wxID_OPEN_FILE_OR_DIR, _("Open"));
+    openItem->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DIR_UP, wxART_MENU, wxSize(16, 16)));
     Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& event) {wxLaunchDefaultApplication(GetPath()); }, wxID_OPEN_FILE_OR_DIR);
+    mnu.Append(openItem);
     mnu.AppendSeparator();
 
-    mnu.Append(wxID_CREATE_DIR, "Create directory");
+    wxMenuItem* createItem = new wxMenuItem(&mnu, wxID_CREATE_DIR, _("Create directory"));
+    createItem->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW_DIR, wxART_MENU, wxSize(16, 16)));
+    mnu.Append(createItem);
     mnu.Append(wxID_CREATE_DIR_CREATE_N_ENTER, "Create directory and enter it");
     Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& event) {ShowDialogForCreateDir(); }, wxID_CREATE_DIR);
-    Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& event) {std::optional<wxString> path = ShowDialogForCreateDir();
-    if (path != std::nullopt) wxLaunchDefaultApplication(path.value()); }, wxID_CREATE_DIR_CREATE_N_ENTER);
+    Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& event) {auto path = ShowDialogForCreateDir();
+    if (path) wxLaunchDefaultApplication(*path); }, wxID_CREATE_DIR_CREATE_N_ENTER);
     mnu.AppendSeparator();
 
     if (GetTreeCtrl()->GetItemParent(item) != GetRootId()) {
-        mnu.Append(wxID_RENAME_FILE_OR_DIR, "Rename");
+        wxMenuItem* renameItem = new wxMenuItem(&mnu, wxID_RENAME_FILE_OR_DIR, _("Rename"));
+        renameItem->SetBitmap(wxArtProvider::GetBitmap(wxART_REDO, wxART_MENU, wxSize(16, 16)));
+        mnu.Append(renameItem);
         Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& event) {wxTreeItemId item = GetTreeCtrl()->GetFocusedItem();
         if (item.IsOk()) GetTreeCtrl()->EditLabel(item); }, wxID_RENAME_FILE_OR_DIR);
 
-        mnu.Append(wxID_DELETE_FILE_OR_DIR, "Delete");
+        wxMenuItem* deleteItem = new wxMenuItem(&mnu, wxID_DELETE_FILE_OR_DIR, _("Delete"));
+        deleteItem->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_MENU, wxSize(16, 16)));
+        mnu.Append(deleteItem);
         Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& event) { wxSetCursor(wxCURSOR_WAIT);
             wxTreeItemId item = GetTreeCtrl()->GetFocusedItem();
         wxString path = GetPath(item);
-        if (RemoveFile(path)) GetTreeCtrl()->Delete(item);
+        if (wxFileName::Rmdir(path, wxPATH_RMDIR_RECURSIVE)) GetTreeCtrl()->Delete(item);
         wxSetCursor(wxCURSOR_ARROW); }, wxID_DELETE_FILE_OR_DIR);
         mnu.AppendSeparator();
     }
-    mnu.Append(wxID_TREE_REFRESH, "Refresh");
+    wxMenuItem* refreshItem = new wxMenuItem(&mnu, wxID_TREE_REFRESH, _("Refresh"));
+    refreshItem->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_MENU, wxSize(16, 16)));
+    mnu.Append(refreshItem);
     Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& event) {UnselectAll();  ReCreateTree(); }, wxID_TREE_REFRESH);
 
     if (!GetTreeCtrl()->IsSelected(item)) GetTreeCtrl()->SelectItem(item);
@@ -118,7 +135,9 @@ void wxLocalDirCtrl::RightClickTree(wxCommandEvent& event) {
     void* pdata = static_cast<wxMenu*>(event.GetEventObject())->GetClientData();
     wxMenu mnu;
     mnu.SetClientData(pdata);
-    mnu.Append(wxID_TREE_REFRESH, "Refresh");
+    wxMenuItem* refreshItem = new wxMenuItem(&mnu, wxID_TREE_REFRESH, _("Refresh"));
+    refreshItem->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_MENU, wxSize(16, 16)));
+    mnu.Append(refreshItem);
     Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& event) {UnselectAll();  ReCreateTree(); }, wxID_TREE_REFRESH);
     PopupMenu(&mnu);
 }
@@ -148,53 +167,18 @@ void wxLocalDirCtrl::MakeDirectory(const wxString& path, const wxTreeItemId& roo
     }
 }
 
-bool wxLocalDirCtrl::RemoveFile(const wxString& path) {
-    if (wxFileName::FileExists(path)) return wxRemoveFile(path);
-    else if (wxDir::Exists(path))
-    {
-        wxDir dir(path);
-        if (!dir.HasFiles() && !dir.HasSubDirs())
-        {
-            dir.Close();
-            return wxDir::Remove(path);
-        }
-        else
-        {
-            wxArrayString* files = new wxArrayString();
-            wxDir::GetAllFiles(path, files, wxEmptyString, wxDIR_FILES | wxDIR_HIDDEN);
-            for (size_t i = 0; i < files->GetCount(); ++i)
-            {
-                if (!wxRemoveFile(files->Item(i))) return false;
-            }
+void wxLocalDirCtrl::EnableTree() {
+    m_bTreeEnabled = true;
+}
 
-            wxArrayString subDirs;
-            wxString strFile;
-            if (dir.GetFirst(&strFile, "*", wxDIR_HIDDEN | wxDIR_DIRS))
-            {
-                if (path[path.length() - 1] != '\\') strFile = '\\' + strFile;
-                strFile = path + strFile;
-                subDirs.Add(strFile);
-            }
+void wxLocalDirCtrl::DisableTree() {
+    m_bTreeEnabled = false;
+}
 
-            while (dir.GetNext(&strFile))
-            {
-                if (path[path.length() - 1] != '\\') strFile = '\\' + strFile;
-                strFile = path + strFile;
-                subDirs.Add(strFile);
-            }
+void wxLocalDirCtrl::MouseEvents(wxMouseEvent& event) {
+    if (m_bTreeEnabled) event.Skip();
+}
 
-            if (subDirs.GetCount() > 0)
-            {
-                for (int i = 0; i < subDirs.GetCount(); i++)
-                {
-                    if (!RemoveFile(subDirs.Item(i))) return false;
-                }
-            }
-
-            dir.Close();
-            return wxDir::Remove(path);
-        }
-    }
-
-    return true;
+void wxLocalDirCtrl::KeyDown(wxKeyEvent& event) {
+    if (m_bTreeEnabled) event.Skip();
 }
