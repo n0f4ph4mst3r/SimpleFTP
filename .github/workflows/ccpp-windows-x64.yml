@@ -1,0 +1,47 @@
+name: C/C++ CI (Windows x64)
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+    env:
+      VCPKG_DEFAULT_TRIPLET: x64-windows     
+ 
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+        fetch-depth: 0
+
+    - uses: lukka/get-cmake@latest
+    - name: List $RUNNER_WORKSPACE before vcpkg is setup
+      run: find $RUNNER_WORKSPACE
+      shell: bash
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@main
+      id: runvcpkg
+
+    - name: List $RUNNER_WORKSPACE before build
+      run: find $RUNNER_WORKSPACE
+      shell: bash
+        
+    - name: Prints output of run-vcpkg's action.
+      run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
+      
+    - name: Run CMake
+      uses: lukka/run-cmake@v10
+      with:
+        configurePreset: 'msbuild-vcpkg'
+        buildPreset: 'msbuild-vcpkg'
+        buildPresetAdditionalArgs: '[`--config Release`]'
+
+    - name: List $RUNNER_WORKSPACE after build
+      run: find $RUNNER_WORKSPACE
+      shell: bash
+        
+    - name: Run app
+      run: >-
+        msbuild\ClientApp\Release\ClientApp.exe    

@@ -1,0 +1,73 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 26,
+    "patch": 0
+  },
+  "configurePresets": [
+	{
+      "name": "ninja-release-gcc",
+      "displayName": "Ninja+GCC Configure Settings",
+      "description": "Sets build and install directories",
+      "binaryDir": "${sourceDir}/release",
+      "generator": "Ninja",
+	  "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+		"CMAKE_INSTALL_PREFIX": "${sourceDir}/bin",
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+	{
+      "name": "ninja-release-clang",
+      "displayName": "Ninja+Clang Configure Settings",
+      "description": "Sets build and install directories",
+      "binaryDir": "${sourceDir}/release",
+      "generator": "Ninja",
+	  "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "msbuild-vcpkg",
+      "displayName": "MSBuild (vcpkg toolchain) Configure Settings",
+      "description": "Configure with VS generators and with vcpkg toolchain",
+      "binaryDir": "${sourceDir}/msbuild",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "strategy": "set",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ninja+gcc",
+      "configurePreset": "ninja-release-gcc",
+      "displayName": "Build with Ninja",
+      "description": "Build with Ninja (gcc)"
+    },
+	{
+      "name": "ninja+clang",
+      "configurePreset": "ninja-release-clang",
+      "displayName": "Build with Ninja",
+      "description": "Build with Ninja (clang)"
+    },
+    {
+      "name": "msbuild-vcpkg",
+      "configurePreset": "msbuild-vcpkg",
+      "displayName": "Build MSBuild",
+      "description": "Build with MSBuild (VS)"
+    }
+  ]
+}
