@@ -4,7 +4,7 @@
 IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit() {
-    ClientApp* app = new ClientApp(wxT("FTP-client"));
+    ClientApp* app = new ClientApp(wxT("SimpleFTP"));
     app->Show(true);
 
     return true;

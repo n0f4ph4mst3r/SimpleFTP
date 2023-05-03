@@ -1,62 +1,42 @@
 #pragma once
-#include "wxFTPWrapper.h"
-
+#include "wxTaskManager.h"
+#include "wxGenericDirPanel.h"
 #include <wx/wx.h>
-#include <wx/event.h>
-#include <wx/splitter.h>
-#include <wx/thread.h>
 
 #include <map>
 #include <memory>
 
-#include "wxRemoteDropTarget.h"
-#include "wxTransferTransaction.h"
 
 using boost::asio::ip::tcp;
 
-class ClientApp : public wxFrame, public wxThreadHelper
+class ClientApp : public wxFrame
 {
 private:
-    std::map <int, wxString> m_accessData; //login, port and etc.
-    std::unique_ptr<wxFTPWrapper> m_client; //work with FTP
-    std::list<wxTransferTransaction> queuededTasks;
+    std::map<int, wxString> m_accessData; //login, port and etc.
+    std::shared_ptr<wxFTPWrapper> m_client; //work with FTP
 
     //widgets
     wxTaskManager* m_taskManager;
-    wxLocalDirCtrl* m_clientTree;
-    wxRemoteTreeCtrl* m_serverTree;
-
-    void Shutdown();
-    void AddTask(const wxTransferTransaction& task);
+    wxGenericDirPanel* m_dirCtrl;
 
     //events
-    void ConnectionClicked(wxCommandEvent& event);
-    void DisconnectionClicked(wxCommandEvent& event);
+    void ConnectionClicked(wxCommandEvent&);
+    void DisconnectionClicked(wxCommandEvent&);
     void AccessDataChanged(wxCommandEvent& event);
 
-    void RemoteTreeOnDragInit(wxTreeEvent& event);
-
-    wxRemoteDropTarget* m_clientDropTarget;
+    void DoEndTransferThread(wxCommandEvent& event);
 
     enum {
-        wxID_BUTTON_CONNECT = wxID_HIGHEST + 1,
+        wxID_SPLITTER_CENTER = wxID_HIGHEST + 1,
+
+        wxID_BUTTON_CONNECT,
         wxID_BUTTON_DISCONNECT,
 
         wxID_CONNECTION_HOST,
         wxID_CONNECTION_LOGIN,
         wxID_CONNECTION_PORT,
-        wxID_CONNECTION_PASSWORD,
-
-        wxTASK_PANEL,
-        wxTASK_MANAGER,
-
-        wxID_TREE_CLIENT,
-        wxID_TREE_SERVER,
-        wxID_TREE_SERVER_ITEM
+        wxID_CONNECTION_PASSWORD
     };
-protected:
-    virtual wxThread::ExitCode Entry();
-    wxCriticalSection m_pThreadCS;
 
     wxDECLARE_EVENT_TABLE();
 public:

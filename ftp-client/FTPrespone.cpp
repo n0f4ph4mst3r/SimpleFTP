@@ -22,8 +22,7 @@ FTPresponse::FTPresponse (const std::string& str) {
 
 		message = str;
 	}
-	catch (std::exception& e)
-	{
+	catch (std::exception& e) {
 		ncode = 0;
 		message = "";
 		IsFine = false;

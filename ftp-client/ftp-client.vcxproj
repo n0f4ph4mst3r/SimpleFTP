@@ -151,12 +151,15 @@
     <ClCompile Include="ClientApp.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FTPrespone.cpp" />
+    <ClCompile Include="wxGenericDirPanel.cpp" />
+    <ClCompile Include="wxLocalDropTarget.cpp" />
+    <ClCompile Include="wxRemoteDirCtrl.cpp" />
     <ClCompile Include="wxRemoteDropTarget.cpp" />
+    <ClCompile Include="wxTreeDropTarget.cpp" />
     <ClCompile Include="wxLocalDirCtrl.cpp" />
     <ClCompile Include="wxILogCtrl.cpp" />
     <ClCompile Include="wxRemoteTreeCtrlItemData.cpp" />
     <ClCompile Include="wxFTPWrapper.cpp" />
-    <ClCompile Include="wxRemoteTreeCtrl.cpp" />
     <ClCompile Include="wxLogCtrl.cpp" />
     <ClCompile Include="wxLogMessageItem.cpp" />
     <ClCompile Include="wxTaskManager.cpp" />
@@ -167,16 +170,22 @@
     <ClInclude Include="enumMessage.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="FTPresponse.h" />
+    <ClInclude Include="wxGenericDirPanel.h" />
+    <ClInclude Include="wxLocalDropTarget.h" />
+    <ClInclude Include="wxRemoteDirCtrl.h" />
     <ClInclude Include="wxRemoteDropTarget.h" />
+    <ClInclude Include="wxTreeDropTarget.h" />
     <ClInclude Include="wxLocalDirCtrl.h" />
     <ClInclude Include="wxRemoteTreeCtrlItemData.h" />
     <ClInclude Include="wxFTPWrapper.h" />
-    <ClInclude Include="wxRemoteTreeCtrl.h" />
     <ClInclude Include="wxLogCtrl.h" />
     <ClInclude Include="wxLogMessageItem.h" />
     <ClInclude Include="wxILogCtrl.h" />
     <ClInclude Include="wxTaskManager.h" />
     <ClInclude Include="wxTransferTransaction.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

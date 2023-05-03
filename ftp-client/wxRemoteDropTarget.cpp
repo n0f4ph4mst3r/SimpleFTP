@@ -1,48 +1,50 @@
 #include "wxRemoteDropTarget.h"
 
-wxRemoteDropTarget::wxRemoteDropTarget(wxRemoteTreeCtrl* serverTree, wxLocalDirCtrl* clientTree) {
-    m_serverTree = serverTree;
-    m_clientCtrl = clientTree;
-};
+wxRemoteDropTarget::wxRemoteDropTarget(wxRemoteDirCtrl* serverCtrl, wxLocalDirCtrl* clientTree) : wxTreeDropTarget(serverCtrl, clientTree) {}
 
-bool wxRemoteDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
-{
-    wxTreeCtrl* clientTree = m_clientCtrl->GetTreeCtrl();
+bool wxRemoteDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data) {
+    if (isActive) {
+        int nHitTest = wxTREE_HITTEST_ONITEMLABEL;
+        wxTreeCtrl* serverTree = m_serverCtrl->GetTreeCtrl();
+        m_targetItem = serverTree->HitTest(wxPoint(x, y), nHitTest);
+        if (!m_targetItem) return false;
+        if (dynamic_cast<wxRemoteFileData*>(serverTree->GetItemData(m_targetItem))) m_targetItem = serverTree->GetItemParent(m_targetItem);
+        serverTree->SelectItem(m_targetItem);
+    }
+    else return false;
 
-    int nHitTest = wxTREE_HITTEST_ONITEMLABEL;
-    m_targetItem = clientTree->HitTest(wxPoint(x, y), nHitTest);
-    if (!wxDir::Exists(m_clientCtrl->GetPath(m_targetItem)) && clientTree->GetItemParent(m_targetItem) != m_clientCtrl->GetRootId())
-        m_targetItem = clientTree->GetItemParent(m_targetItem);
-
-    m_remoteItem = m_serverTree->GetFocusedItem();
     return true;
 }
 
-wxDragResult wxRemoteDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult defResult)
-{
-    int nHitTest = wxTREE_HITTEST_ONITEMLABEL;
-    wxTreeItemId previosItem;
-    if (m_targetItem) previosItem = m_targetItem;
-    wxTreeCtrl* tree = m_clientCtrl->GetTreeCtrl();
-    m_targetItem = tree->HitTest(wxPoint(x, y), nHitTest);
+wxDragResult wxRemoteDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult defResult) {
+    if (isActive) {
+        int nHitTest = wxTREE_HITTEST_ONITEMLABEL;
+        wxTreeItemId previousItem = m_targetItem;
+        wxTreeCtrl* serverTree = m_serverCtrl->GetTreeCtrl();
+        m_targetItem = serverTree->HitTest(wxPoint(x, y), nHitTest);
+        if (!m_targetItem) {
+            if (previousItem) serverTree->SetItemDropHighlight(previousItem, false);
+            return wxDragNone;
+        }
 
-    if (m_targetItem && (m_targetItem != previosItem))
-    {
-        wxString path = m_clientCtrl->GetPath(m_targetItem);
-        if (wxDir::Exists(path) || tree->GetItemParent(m_targetItem) == m_clientCtrl->GetRootId()) {
-            tree->SetItemDropHighlight(m_targetItem);
-            tree->SelectItem(m_targetItem);
-        } 
-        if (previosItem) tree->SetItemDropHighlight(previosItem, false);
+        if (m_targetItem != previousItem) {
+            if (dynamic_cast<wxRemoteDirData*>(serverTree->GetItemData(m_targetItem)) || serverTree->GetItemParent(m_targetItem) == serverTree->GetRootItem()) {
+                serverTree->SetItemDropHighlight(m_targetItem);
+            }
+
+            if (previousItem) serverTree->SetItemDropHighlight(previousItem, false);
+        }
     }
+    else return wxDragNone;
+
     return defResult;
 }
 
-wxTreeItemId wxRemoteDropTarget::GetTargetID() {
-    return m_targetItem;
+void wxRemoteDropTarget::SetPath(const wxString& path) {
+    m_path = path;
 }
 
-wxTreeItemId wxRemoteDropTarget::GetSourceID() {
-    return m_remoteItem;
+wxString wxRemoteDropTarget::GetPath() {
+    return m_path;
 }
 
