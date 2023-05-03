@@ -1,4 +1,10 @@
-### v0.5.0 (2022-09-06)
+### v0.7.0 (2023-01-07)
+
+##### Refactors
+
+*  refactor [fb674b87](https://github.com/n0f4ph4mst3r/FTP-Client/fb674b87)
+
+### v0.6.0 (2022-09-06)
 
 ##### New Features
 

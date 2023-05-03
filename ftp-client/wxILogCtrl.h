@@ -2,6 +2,7 @@
 #include "wx/wx.h"
 #include "wx/listctrl.h"
 #include "wx/vector.h"
+#include <wx/artprov.h>
 
 class wxILogCtrl : public wxListCtrl
 {
@@ -12,7 +13,7 @@ protected:
 	void ColumnEndDragged(wxListEvent& event);
 	void ItemInsert(wxListEvent& event);
 	void SizeChanged(wxSizeEvent& event);
-	void RightClickElem(wxListEvent& event);
+	void ItemContext(wxListEvent& event);
 	virtual void OnPopupClick(wxCommandEvent& event);
 	void ListIdle(wxIdleEvent& event);
 

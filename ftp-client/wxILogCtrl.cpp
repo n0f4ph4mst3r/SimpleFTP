@@ -6,7 +6,7 @@ EVT_LIST_COL_DRAGGING(wxID_ANY, wxILogCtrl::ColumnDragged)
 EVT_LIST_COL_END_DRAG(wxID_ANY, wxILogCtrl::ColumnEndDragged)
 EVT_LIST_INSERT_ITEM(wxID_ANY, wxILogCtrl::ItemInsert)
 EVT_SIZE(wxILogCtrl::SizeChanged)
-EVT_LIST_ITEM_RIGHT_CLICK(wxID_ANY, wxILogCtrl::RightClickElem)
+EVT_LIST_ITEM_RIGHT_CLICK(wxID_ANY, wxILogCtrl::ItemContext)
 wxEND_EVENT_TABLE()
 
 wxILogCtrl::wxILogCtrl() : wxListCtrl() {};
@@ -46,11 +46,13 @@ void wxILogCtrl::ItemInsert(wxListEvent& event) {
     SetColumnWidth(GetColumnCount() - 1, wxLIST_AUTOSIZE_USEHEADER);
 }
 
-void wxILogCtrl::RightClickElem(wxListEvent& event) {
+void wxILogCtrl::ItemContext(wxListEvent& event) {
     void* pdata = reinterpret_cast<void*>(event.GetItem().GetData());
     wxMenu mnu;
     mnu.SetClientData(pdata);
-    mnu.Append(wxID_LOGGER_CLEAR, "Clear");
+    wxMenuItem* deleteItem = new wxMenuItem(&mnu, wxID_LOGGER_CLEAR, _("Clear"));
+    deleteItem->SetBitmap(wxArtProvider::GetBitmap(wxART_DELETE, wxART_MENU, wxSize(16, 16)));
+    mnu.Append(deleteItem);
     Bind(wxEVT_COMMAND_MENU_SELECTED, &wxILogCtrl::OnPopupClick, this, wxID_LOGGER_CLEAR);
     PopupMenu(&mnu);
 }

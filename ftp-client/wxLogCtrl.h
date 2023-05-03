@@ -15,7 +15,7 @@ public:
 	virtual wxString OnGetItemText(long item, long column) const override;
 	virtual wxListItemAttr* OnGetItemAttr(long item) const override;
 
-	void PrintMessage(const wxString& msg, Message type = Message::STATUS);
+	void PrintMessage(const wxLogMessageItem& msg);
 
 	enum Columns {
 		wxCOL_DATE = 0,
