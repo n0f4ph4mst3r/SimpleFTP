@@ -1,0 +1,61 @@
+name: C/C++ CI (Ubuntu Clang)
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      VCPKG_DEFAULT_TRIPLET: x64-linux
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+        fetch-depth: 0
+
+    - uses: lukka/get-cmake@latest
+    - name: List $RUNNER_WORKSPACE before vcpkg is setup
+      run: find $RUNNER_WORKSPACE
+      shell: bash
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@main
+      id: runvcpkg
+
+    - name: List $RUNNER_WORKSPACE before build
+      run: find $RUNNER_WORKSPACE
+      shell: bash
+        
+    - name: Prints output of run-vcpkg's action.
+      run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
+        
+    - name: Install dependencies
+      run: |
+        sudo apt-get install libdbus-1-dev libxi-dev libxtst-dev 
+        sudo apt install libx11-dev libxkbcommon-x11-dev libx11-xcb-dev
+        sudo apt-get install autoconf
+        sudo apt-get install libtool
+        sudo apt-get install bison
+        sudo apt-get install gperf
+        sudo apt-get install libgles2-mesa-dev
+        sudo apt install libxext-dev
+        sudo apt install libxrandr-dev
+        sudo apt-get install libxi-dev
+        sudo apt-get install libxcursor-dev
+        sudo apt-get install libxdamage-dev
+        sudo apt-get install libxinerama-dev
+        
+    - name: Compiler check
+      run: clang++ --version
+      
+    - name: Run CMake
+      uses: lukka/run-cmake@v10
+      with:
+        configurePreset: 'ninja-release-clang'
+        buildPreset: 'ninja+clang'
+
+    - name: List $RUNNER_WORKSPACE after build
+      run: find $RUNNER_WORKSPACE
+      shell: bash
